@@ -50,7 +50,7 @@ public class FileToDocuments {
     }
 
     // 针对不同的文件读取器，是实现不同的方法
-    private static class MarkdownFileHandler implements FileHandler{
+    private static class MarkdownFileHandler implements FileHandler {
         @Override
         public List<Document> run(MultipartFile file) throws IOException {
             MarkdownDocumentReaderConfig readerConfig = MarkdownDocumentReaderConfig.builder()
@@ -59,18 +59,22 @@ public class FileToDocuments {
                     .build();
             Resource byteArrayResource = new ByteArrayResource(file.getBytes());
             MarkdownDocumentReader reader = new MarkdownDocumentReader(byteArrayResource, readerConfig);
-            return reader.read();
+            // 切分文档
+            return ChineseTokenTextSplitter.quicklyBuilder().split(reader.read());
         }
     }
 
-    private static  class PdfFileHandler implements FileHandler{
+    private static class PdfFileHandler implements FileHandler {
         @Override
         public List<Document> run(MultipartFile file) throws IOException {
-            return new PagePdfDocumentReader(new ByteArrayResource(file.getBytes())).read();
+            List<Document> read = new PagePdfDocumentReader(new ByteArrayResource(file.getBytes())).read();
+            // 切分文档
+            read = ChineseTokenTextSplitter.quicklyBuilder().split(read);
+            return read;
         }
     }
 
-    private static class TextFileHandler implements FileHandler{
+    private static class TextFileHandler implements FileHandler {
         @Override
         public List<Document> run(MultipartFile file) throws IOException {
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
@@ -81,6 +85,8 @@ public class FileToDocuments {
                 }
                 List<Document> documents = new ArrayList<>(1);
                 documents.add(new Document(content.toString()));
+                // 切分文档
+                documents = ChineseTokenTextSplitter.quicklyBuilder().split(documents);
                 return documents;
             } catch (IOException e) {
                 throw new RuntimeException("读取文本文件失败", e);
