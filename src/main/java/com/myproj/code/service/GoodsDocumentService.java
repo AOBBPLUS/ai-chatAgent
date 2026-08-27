@@ -12,4 +12,6 @@ public interface GoodsDocumentService extends IService<GoodsDocument> {
     List<GoodsDocument> getListByGoodsId(Integer id);
 
     Result<?> upload(MultipartFile file, Long goodsId) throws IOException;
+
+    Result<?> delete(Long id);
 }

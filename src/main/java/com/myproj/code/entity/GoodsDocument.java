@@ -34,5 +34,5 @@ public class GoodsDocument {
      * 关联的商品
      */
     @TableField("goods_id")
-    private Integer goodsId;
+    private Long goodsId;
 }

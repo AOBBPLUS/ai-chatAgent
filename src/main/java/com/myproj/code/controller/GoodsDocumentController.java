@@ -1,5 +1,6 @@
 package com.myproj.code.controller;
 
+import com.myproj.code.code.ResultCode;
 import com.myproj.code.common.Result;
 import com.myproj.code.service.GoodsDocumentService;
 import lombok.RequiredArgsConstructor;
@@ -17,23 +18,24 @@ public class GoodsDocumentController {
 
     /**
      * TODO:001文档上传
-     * @param file 文档
+     *
+     * @param file    文档
      * @param goodsId 商品id
      * @return 上传结果
      */
     @PostMapping("/upload")
     public Result<?> upload(@RequestBody MultipartFile file, Long goodsId) throws IOException {
-        goodsDocumentService.upload(file,goodsId);
-        return null;
+        return Result.success(ResultCode.ADD_SUCCESS, goodsDocumentService.upload(file, goodsId));
     }
 
     /**
      * TODO:002 删除文档
+     *
      * @param id 文档id
      * @return 删除结果
      */
     @DeleteMapping("/delete")
-    public Result<?> delete(@RequestParam Integer id) {
-        return null;
+    public Result<?> delete(@RequestParam Long id) {
+        return Result.success(ResultCode.DELETE_SUCCESS, goodsDocumentService.delete(id));
     }
 }

@@ -25,7 +25,11 @@ public enum ResultCode {
     ADD_ERROR(500, "保存失败"),
     DELETE_ERROR(500, "删除失败"),
     UPDATE_ERROR(500, "修改失败"),
-    GET_SUCCESS(200, "查询成功");
+    GET_SUCCESS(200, "查询成功"),
+    UPLOAD_FILE_ERROR(601,"文件上传失败"),
+    DELETE_FILE_ERROR(602,"文件上传失败"),
+    DELETE_GOODS_ERROR(603,"文件删除失败");
+
     private final int code;
     private final String message;
 

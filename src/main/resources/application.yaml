@@ -41,6 +41,11 @@ spring:
         # cosine: 余弦相似度，适合文本相似度计算
         metric-type: cosine
         initialize-schema: true  # 是否自动创建 schema
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
 session: # 会话的redis设置
   key: session
   expiration-duration: 10 # min
