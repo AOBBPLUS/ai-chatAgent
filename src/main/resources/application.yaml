@@ -1,14 +1,14 @@
 spring:
   data:
     redis:
-      host: localhost
-      port: 6380
+      host: 192.168.11.128
+      port: 6379
       password: 123456
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
     password: 123456
-    url: jdbc:mysql://localhost:3306/ai_customer_service?useSSL=false&serverTimezone=UTC&characterEncoding=utf8&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://192.168.11.128:3306/ai_customer_service?useSSL=false&serverTimezone=UTC&characterEncoding=utf8&allowPublicKeyRetrieval=true
   ai:
     dashscope:
       chat:

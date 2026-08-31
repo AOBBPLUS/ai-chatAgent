@@ -1,5 +1,7 @@
 package com.myproj.code.service.impl;
 
+import cn.hutool.json.JSON;
+import cn.hutool.json.JSONUtil;
 import com.myproj.code.service.RoleService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.myproj.code.code.ResultCode;
@@ -7,17 +9,23 @@ import com.myproj.code.common.Result;
 import com.myproj.code.entity.Role;
 import com.myproj.code.mapper.RoleMapper;
 import com.myproj.code.utils.KeyUtils;
+import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
 @Service
 public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements RoleService {
+    @Resource
     private final StringRedisTemplate stringRedisTemplate;
     @Value("${role.key}")
     private String key;
     @Value("${role.expiration-duration}")
     private Integer timeout;
+
 
     public RoleServiceImpl(StringRedisTemplate stringRedisTemplate) {
         this.stringRedisTemplate = stringRedisTemplate;
@@ -62,5 +70,22 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
             return Result.error(ResultCode.NOT_FOUND).setMessage("该商户没有AI客服");
         }
         return Result.success(ResultCode.SUCCESS, role);
+    }
+
+    @Override
+    public Role getRoleById(Integer ctId) {
+        // 查询Redis缓存
+        String json = stringRedisTemplate.opsForValue().getAndExpire(KeyUtils.redisKeyUtils(key, ctId), timeout, TimeUnit.MINUTES);
+        if (json != null) {
+            Role role = JSONUtil.toBean(json, Role.class);
+        }
+        // 为空->查询数据库
+        Role role = lambdaQuery().eq(Role::getCtId, ctId).one();
+        if (role == null) {
+            return null; //没有角色
+        }
+        // redis存储
+        stringRedisTemplate.opsForValue().set(KeyUtils.redisKeyUtils(key, ctId), JSONUtil.toJsonStr(role), timeout, TimeUnit.MINUTES);
+        return role;
     }
 }

@@ -29,7 +29,7 @@ public class GoodsController {
      */
     @DeleteMapping("/delete")
     public Result<?> delete(@RequestParam Integer id) {
-        return null;
+        return Result.success(ResultCode.DELETE_SUCCESS, goodsService.delete(id));
     }
 
     /**

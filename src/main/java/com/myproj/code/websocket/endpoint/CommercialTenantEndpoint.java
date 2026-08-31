@@ -35,6 +35,8 @@ public class CommercialTenantEndpoint implements WebSocketEndpoint {
 
     @OnMessage
     public void onMessage(ChatMessage message, Session session) throws EncodeException, IOException {
+        message.setType(getEndpointType());
+        UserServiceEndpoint.findEndPoint(1).sendMessage(message);
 
     }
 

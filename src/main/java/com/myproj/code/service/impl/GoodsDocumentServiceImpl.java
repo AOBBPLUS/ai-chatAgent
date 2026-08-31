@@ -37,7 +37,6 @@ public class GoodsDocumentServiceImpl extends ServiceImpl<GoodsDocumentMapper, G
     public Result<?> upload(MultipartFile file, Long goodsId) throws IOException {
         // 跟据文件类型选择文件读取器
         List<Document> documentList = fileToDocuments.handle(file);
-        System.out.println(documentList);
         // 存储到数据库中，标识商品有哪些文本
         GoodsDocument fileData = GoodsDocument.builder().name(file.getOriginalFilename()).goodsId(goodsId).build();
         if (!save(fileData)) {
