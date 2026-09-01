@@ -1,8 +1,10 @@
 package com.myproj.code.websocket.endpoint;
 
+import com.myproj.code.ai.service.AIService;
 import com.myproj.code.config.ChatMessageCoder;
 import com.myproj.code.mapper.SessionLogMapper;
 import com.myproj.code.service.SessionService;
+import com.myproj.code.utils.SessionFind;
 import com.myproj.code.websocket.message.ChatMessage;
 import com.myproj.code.entity.SessionLog;
 import jakarta.annotation.Resource;
@@ -20,6 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class UserServiceEndpoint implements WebSocketEndpoint {
 
     private static SessionService sessionService;
+    private static SessionFind sessionFind;
 
     // 存储用户会话
     private static final ConcurrentHashMap<Integer, UserServiceEndpoint> userEndpointPool = new ConcurrentHashMap<>();
@@ -28,14 +31,18 @@ public class UserServiceEndpoint implements WebSocketEndpoint {
     private Integer userId;
     @Resource
     private SessionLogMapper sessionLogMapper;
+    @Autowired
+    private AIService aIService;
 
     @Autowired
-    public void setSessionService(SessionService sessionService) {
+    public void setSessionService(SessionService sessionService, SessionFind sessionFind) {
         UserServiceEndpoint.sessionService = sessionService;
+        UserServiceEndpoint.sessionFind = sessionFind;
     }
 
     /**
      * 建立连接触发
+     *
      * @param session
      * @param userId
      */
@@ -62,27 +69,49 @@ public class UserServiceEndpoint implements WebSocketEndpoint {
      */
     // TODO:005
     @OnMessage
-    public void onMessage(ChatMessage message, Session session) throws EncodeException, IOException {
+    public void onMessage(ChatMessage message, Session session) throws EncodeException, IOException, IllegalAccessException {
         // 设置消息类型
         message.setType(SessionLog.Type.USER);
         // 查找
-        com.myproj.code.entity.Session session1 = sessionService.find(message, userId,this);
-        switch (session1.getConversationStatus()){
-            case AI -> {}
+        com.myproj.code.entity.Session session1 = sessionService.find(message, userId, this);
+        switch (session1.getConversationStatus()) {
+            case AI -> {
+                if (aIService.turnToMunalJudgement(session1, message)) {
+                    // 插入聊天记录
+                    sessionLogMapper.insert(SessionLog.builder()
+                            .sessionId(message.getSessionId())
+                            .content(message.getMessage())
+                            .type(message.getType())
+                            .build());
+                    // 获取商户端点
+                    CommercialTenantEndpoint ctEndPoint = sessionFind.getCTEndPointById(session1.getId());
+                    if (ctEndPoint != null) {
+                        ctEndPoint.sendMessage(message);
+                    }
+                }
+                aIService.chat(session1, message, this);
+            }
             case HUMAN -> {
                 // 插入聊天记录
                 sessionLogMapper.insert(SessionLog.builder()
-                                .sessionId(message.getSessionId())
-                                .content(message.getMessage())
-                                .type(message.getType())
+                        .sessionId(message.getSessionId())
+                        .content(message.getMessage())
+                        .type(message.getType())
                         .build());
                 // 获取商户端点
+                CommercialTenantEndpoint ctEndPoint = sessionFind.getCTEndPointById(session1.getId());
+                if (ctEndPoint != null) {
+                    ctEndPoint.sendMessage(message);
+                }
+
+
             }
         }
     }
 
     /**
      * 发生错误触发
+     *
      * @param session
      * @param error
      */

@@ -5,6 +5,8 @@ import cn.hutool.json.JSONUtil;
 import com.myproj.code.entity.Session;
 import com.myproj.code.mapper.SessionMapper;
 import com.myproj.code.service.SessionService;
+import com.myproj.code.websocket.endpoint.CommercialTenantEndpoint;
+import com.myproj.code.websocket.endpoint.UserServiceEndpoint;
 import jakarta.annotation.Resource;
 import jakarta.websocket.EncodeException;
 import org.springframework.beans.factory.annotation.Value;
@@ -43,5 +45,16 @@ public class SessionFind {
             session = JSONUtil.toBean(json, Session.class);
         }
         return session;
+    }
+
+    public UserServiceEndpoint getUserEndPointById(Integer sessionId) throws EncodeException, IOException {
+        Session session = getSessionById(sessionId); //这里要先找Session
+        // 通过session中的userId查找对应的用户的endPoint
+        return UserServiceEndpoint.findEndPoint(session.getUserId());
+    }
+
+    public CommercialTenantEndpoint getCTEndPointById(Integer sessionId) throws EncodeException, IOException {
+        Session sessionById = getSessionById(sessionId);
+        return CommercialTenantEndpoint.findEndPoint(sessionById.getId());
     }
 }
